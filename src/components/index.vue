@@ -1,67 +1,68 @@
 <template>
   <div>
-    <el-radio-group v-model="isCollapse" style="margin-bottom: 20px;">
-      <el-radio-button :label="false">展开</el-radio-button>
-      <el-radio-button :label="true">收起</el-radio-button>
-    </el-radio-group>
-    <el-menu default-active="1-4-1" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose"
-             :collapse="isCollapse" background-color="#545c64" active-text-color="#ffd04b" text-color="#fff">
-      <el-submenu index="1">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span slot="title">首页</span>
+    <el-table
+      :data="tableData"
+      stripe
+      style="width: 100%">
+      <el-table-column
+        prop="uid"
+        label="UID"
+        width="360">
+      </el-table-column>
+      <el-table-column
+        prop="account_info.name"
+        label="姓名"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="phone"
+        label="手机号" width="180">
+      </el-table-column>
+      <el-table-column
+        prop="create_time"
+        label="创建时间"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        fixed="left"
+        label="操作"
+        width="100">
+        <template slot-scope="scope">
+          <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+          <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
         </template>
-        <el-menu-item-group>
-          <span slot="title">个人中心</span>
-          <el-menu-item id="one" v-for="item in centerOne" :key="item.index"><p v-if="item.value=='值1'">{{ item.value }}</p>
-            <p v-else item.value="value">{{ item.value }} + 1</p>
-          </el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group title="分组2">
-          <el-menu-item index="1-3">选项3</el-menu-item>
-        </el-menu-item-group>
-        <el-submenu index="1-4">
-          <span slot="title">选项4</span>
-          <el-menu-item index="1-4-1">选项1</el-menu-item>
-        </el-submenu>
-      </el-submenu>
-      <el-menu-item index="2">
-        <i class="el-icon-menu"></i>
-        <span slot="title">精彩空间</span>
-      </el-menu-item>
-      <el-menu-item index="3" disabled>
-        <i class="el-icon-document"></i>
-        <span slot="title">设置</span>
-      </el-menu-item>
-      <el-menu-item index="4">
-        <i class="el-icon-setting"></i>
-        <span slot="title">帮助中心</span>
-      </el-menu-item>
-    </el-menu>
-    <!--    <div id="one"  v-for="item in centerGroup"><h1>{{ item.index }}</h1></div>-->
+      </el-table-column>
 
+    </el-table>
+    <div>
+      <el-row>
+        <el-button @click="jumpRouting(url='')">默认按钮</el-button>
+
+        <router-link to="myCenter">
+          <el-button type="success">成功按钮</el-button>
+        </router-link>
+      </el-row>
+    </div>
   </div>
-</template>
 
+</template>
 <script>
   import Vue from 'vue'
-
+  import axios from 'axios'
+  import {get, del} from '../utils/request.js'
+  // import { Message } from 'element-ui'
   export default {
     name: "index",
     data() {
       return {
         isCollapse: true,
-        centerOne: [
-          {
-            value: "值1",
-            index: "1 - 1"
-          },
-          {
-            value: "值2",
-            index: "1 - 2"
-          }
-        ]
+        // centerOne: centerOne,
+        tableData: this.tableData,
+        row: this.row
       };
+    },
+    mounted() {
+      this.getAccountInfo()
     },
     methods: {
       handleOpen(key, keyPath) {
@@ -69,26 +70,43 @@
       },
       handleClose(key, keyPath) {
         console.log(key, keyPath);
+      },
+      getAccountInfo() {
+        get('account/', {"page": 1, "size": 10}).then(res => {
+          if (res.data.code == '000000') {
+            this.tableData = res.data.data
+            this.$message.Message.success({message: "查询成功"})
+          } else {
+          }
+
+        })
+      },
+      deleteAccount(accountId) {
+        del('account/', {"account_id": accountId}).then(res => {
+          if (res.data.code == '000000') {
+            this.getAccountInfo()
+            this.$message.Message.success({message: "删除成功AccountId:" + accountId})
+          } else {
+            this.$message.Message.error("删除失败:" + res.data.message)
+          }
+
+        })
+      },
+
+      handleClick(row) {
+        this.row = row
+      },
+      handleDelete(row) {
+        this.deleteAccount(row.id)
+      },
+      jumpRouting() {
+        this.$router.push({path: "myCenter"})
       }
+
+
     }
   }
-  window.onload = function () {
-    var center = new Vue({
-      el: '#one',
-      data: {
-        centerGroup: [
-          {
-            value: "值1",
-            index: 1 - 1
-          },
-          {
-            value: "值2",
-            index: 1 - 2
-          }
-        ]
-      }
-    })
-  }
+
 
 </script>
 
